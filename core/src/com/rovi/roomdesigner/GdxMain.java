@@ -22,4 +22,9 @@ public class GdxMain extends ApplicationAdapter {
 	public void dispose () {
 		stateManager.dispose();
 	}
+	
+	@Override
+	public void resize(int width, int height) {
+		stateManager.resize(width, height);
+	}
 }

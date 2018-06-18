@@ -1,6 +1,9 @@
 package com.rovi.roomdesigner;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.math.Vector3;
 
 public class Camera extends OrthographicCamera{
 	
@@ -59,5 +62,10 @@ public class Camera extends OrthographicCamera{
 	 */
 	public void move(float x, float y) {
 		this.position.set(this.position.x + x, this.position.y + y, 0);
+	}
+	
+	public Vector2 getMousePosition() {
+		Vector3 ret = unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0));
+		return new Vector2(ret.x, ret.y);
 	}
 }

@@ -40,4 +40,7 @@ public class StateManager {
 		}
 	}
 	
+	public void resize(int width, int height) {
+		states.get(states.size() - 1).resize(width, height);
+	}
 }

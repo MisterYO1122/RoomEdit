@@ -4,6 +4,8 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.utils.viewport.ScreenViewport;
+import com.badlogic.gdx.utils.viewport.Viewport;
 
 public class State {
 
@@ -11,12 +13,16 @@ public class State {
 	protected SpriteBatch batch;
 	private Color backgroundColor;
 	protected Camera camera;
+	protected Viewport viewport;
 	
 	public State(StateManager stateManager){
 		this.stateManager = stateManager;
 		
 		batch = new SpriteBatch();
 		camera = new Camera(Gdx.graphics.getWidth(),  Gdx.graphics.getHeight());
+		camera.setPosition(0, 0);
+		camera.update();
+		viewport = new ScreenViewport(camera);
 		backgroundColor = Color.BLACK;
 	}
 	
@@ -58,6 +64,10 @@ public class State {
 	
 	public void dispose() {
 		batch.dispose();
+	}
+	
+	public void resize(int width, int height) {
+		viewport.update(width, height);
 	}
 	
 }
