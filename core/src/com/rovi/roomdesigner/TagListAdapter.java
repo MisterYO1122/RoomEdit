@@ -5,7 +5,6 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
-import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.Array;
 import com.kotcrab.vis.ui.util.adapter.ArrayAdapter;
 import com.kotcrab.vis.ui.widget.VisLabel;
@@ -15,6 +14,8 @@ import com.kotcrab.vis.ui.widget.color.ColorPickerAdapter;
 
 public class TagListAdapter extends ArrayAdapter<RoomTag, VisTable>{
 
+	ColorPicker colorPicker;
+	
 	public TagListAdapter(Array<RoomTag> tagArray) {
 		super(tagArray);
 		// TODO Auto-generated constructor stub
@@ -25,6 +26,7 @@ public class TagListAdapter extends ArrayAdapter<RoomTag, VisTable>{
 		
 		VisLabel label = new VisLabel(tag.getTag());
 		final Image colorImage = new Image(new Texture("tagColorImg.png"));
+		colorImage.setColor(tag.getColor());
 		
 		final VisTable table = new VisTable();
 		
@@ -33,7 +35,7 @@ public class TagListAdapter extends ArrayAdapter<RoomTag, VisTable>{
 			public void clicked(InputEvent event, float x, float y) {
 				System.out.println("changed color on item " + tag.getTag());
 				
-				ColorPicker colorPicker = new ColorPicker(new ColorPickerAdapter() { //TODO: SHOULD DISPOSE OF THIS
+				colorPicker = new ColorPicker(new ColorPickerAdapter() { //TODO: SHOULD DISPOSE OF THIS
 					@Override
 					public void finished(Color newColor) {
 						tag.setColor(newColor);
@@ -52,6 +54,11 @@ public class TagListAdapter extends ArrayAdapter<RoomTag, VisTable>{
 		table.padBottom(5);
 		
 		return table;
+	}
+	
+	@Override
+	protected void updateView(VisTable view, RoomTag item) {
+		colorPicker.dispose();
 	}
 
 }

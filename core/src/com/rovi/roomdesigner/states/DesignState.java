@@ -18,16 +18,19 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.kotcrab.vis.ui.VisUI;
 import com.kotcrab.vis.ui.widget.ListView;
+import com.kotcrab.vis.ui.widget.ListView.ItemClickListener;
 import com.kotcrab.vis.ui.widget.Menu;
 import com.kotcrab.vis.ui.widget.MenuBar;
 import com.kotcrab.vis.ui.widget.MenuItem;
 import com.kotcrab.vis.ui.widget.PopupMenu;
 import com.kotcrab.vis.ui.widget.VisDialog;
+import com.kotcrab.vis.ui.widget.VisLabel;
 import com.kotcrab.vis.ui.widget.VisTable;
 import com.kotcrab.vis.ui.widget.VisTextArea;
 import com.kotcrab.vis.ui.widget.VisTextButton;
 import com.rovi.roomdesigner.Room;
 import com.rovi.roomdesigner.RoomTag;
+import com.rovi.roomdesigner.RoomTagListAdapter;
 import com.rovi.roomdesigner.State;
 import com.rovi.roomdesigner.StateManager;
 import com.rovi.roomdesigner.TagListAdapter;
@@ -54,6 +57,8 @@ public class DesignState extends State implements InputProcessor{
 	
 	boolean movingCamera;
 	
+	Array<RoomTag> tagArray;
+	
 	public DesignState(StateManager stateManager) {
 		super(stateManager);
 		
@@ -66,6 +71,11 @@ public class DesignState extends State implements InputProcessor{
 		root = new VisTable(true);
 		root.setFillParent(true);
 		stage.addActor(root);
+		
+		tagArray = new Array<RoomTag>();
+		tagArray.add(new RoomTag("Default", Color.GRAY));
+		tagArray.add(new RoomTag("Boss", Color.RED));
+		tagArray.add(new RoomTag("Spawn", Color.GREEN));
 		
 		initUI();
 		
@@ -88,8 +98,6 @@ public class DesignState extends State implements InputProcessor{
 		Menu editMenu = new Menu("Edit");
 		Menu viewMenu = new Menu("View");
 		
-		
-		
 		fileMenu.addItem(new MenuItem("Save"));
 		fileMenu.addItem(new MenuItem("Load"));
 		fileMenu.addItem(new MenuItem("Quit"));
@@ -102,12 +110,40 @@ public class DesignState extends State implements InputProcessor{
 		final VisDialog tagsDialog = new VisDialog("Edit Tags");
 		tagsDialog.addCloseButton();
 		
-		Array<RoomTag> tagArray = new Array<>();
-		tagArray.add(new RoomTag("Default", Color.GRAY));
-		tagArray.add(new RoomTag("Boss", Color.GRAY));
-		tagArray.add(new RoomTag("Spawn", Color.GRAY));
-		TagListAdapter tagsListAdapter = new TagListAdapter(tagArray);
+		final TagListAdapter tagsListAdapter = new TagListAdapter(tagArray);
 		ListView tagsListView = new ListView<>(tagsListAdapter);
+		
+		final VisDialog addTagDialog = new VisDialog("New tag");
+		addTagDialog.addCloseButton();
+		final VisTextArea tagNameText = new VisTextArea();
+		VisTextButton addTagDoneButton = new VisTextButton("Enter");
+		addTagDoneButton.addListener(new ClickListener() {
+			@Override
+			public void clicked(InputEvent event, float x, float y) {
+				tagArray.add(new RoomTag(tagNameText.getText(), Color.GRAY));
+				tagsListAdapter.add(tagArray.get(tagArray.size-1)); //CRASHES FOR SOME REASON???
+				addTagDialog.hide();
+				super.clicked(event, x, y);
+			}
+		});
+		
+		addTagDialog.add(tagNameText);
+		addTagDialog.row();
+		addTagDialog.add(addTagDoneButton);
+		
+		VisTextButton addTagButton = new VisTextButton("Add new tag");
+		addTagButton.addListener(new ClickListener() {
+			@Override
+			public void clicked(InputEvent event, float x, float y) {
+				addTagDialog.show(stage);
+				super.clicked(event, x, y);
+			}
+		});
+		
+		tagsDialog.add(addTagButton);
+		tagsDialog.row();
+		
+		
 		tagsDialog.add(tagsListView.getMainTable()).grow();
 		
 		tagsSubMenu.addListener(new ClickListener() {
@@ -237,6 +273,70 @@ public class DesignState extends State implements InputProcessor{
 		}
 		return -1;
 	}
+	
+	private void openRoomPropertyWindow(final int roomId) {
+		VisDialog roomClickDialog = new VisDialog("Room Properties");
+		
+		
+		roomClickDialog.button(new VisTextButton("Edit Room"));
+		
+		
+		VisTextButton deleteButton = new VisTextButton("Delete");
+		deleteButton.addListener(new ClickListener() {
+			@Override
+			public void clicked(InputEvent event, float x, float y) {
+				rooms.remove(roomId);
+				super.clicked(event, x, y);
+			}
+		});
+		
+		roomClickDialog.button(deleteButton);
+		roomClickDialog.addCloseButton();
+		
+		roomClickDialog.row();
+		
+		VisTextArea roomDesc = new VisTextArea();
+		
+		
+		roomClickDialog.add(roomDesc);
+		
+		roomClickDialog.row();
+		final VisDialog tagDialog = new VisDialog("Tags");
+		RoomTagListAdapter tagAdapter = new RoomTagListAdapter(tagArray);
+		ListView<RoomTag> tagListView = new ListView<RoomTag>(tagAdapter);
+		final VisTextButton tagButton = new VisTextButton(rooms.get(roomId).tag.getTag());
+		
+		tagListView.setItemClickListener(new ItemClickListener<RoomTag>() {
+			
+			@Override
+			public void clicked(RoomTag tag) {
+				rooms.get(roomId).tag = tag;
+				tagButton.setText(tag.getTag());
+			}
+		});
+		
+		tagDialog.add(tagListView.getMainTable()).grow();
+		
+		tagDialog.row();
+		tagDialog.addCloseButton();
+		
+		
+		
+		
+		tagButton.addListener(new ClickListener() {
+			@Override
+			public void clicked(InputEvent event, float x, float y) {
+				tagDialog.show(stage);
+				super.clicked(event, x, y);
+			}
+		});
+		
+		
+		roomClickDialog.add(tagButton).left();
+		roomClickDialog.show(stage);
+		
+		
+	}
 
 	@Override
 	public boolean keyDown(int keycode) {
@@ -262,31 +362,7 @@ public class DesignState extends State implements InputProcessor{
 			final int clickedRoom = checkMouseClickOnRoom();
 			if(clickedRoom != -1)
 			{
-				VisDialog roomClickDialog = new VisDialog("Room Properties");
-				
-				
-				roomClickDialog.button(new VisTextButton("Edit Room"));
-				
-				
-				VisTextButton deleteButton = new VisTextButton("delete");
-				deleteButton.addListener(new ClickListener() {
-					@Override
-					public void clicked(InputEvent event, float x, float y) {
-						rooms.remove(clickedRoom);
-						super.clicked(event, x, y);
-					}
-				});
-				
-				roomClickDialog.button(deleteButton);
-				roomClickDialog.addCloseButton();
-				
-				roomClickDialog.row();
-				
-				VisTextArea roomDesc = new VisTextArea();
-				
-				
-				roomClickDialog.add(roomDesc);
-				roomClickDialog.show(stage);
+				openRoomPropertyWindow(clickedRoom);
 				return true;
 			}
 		}
