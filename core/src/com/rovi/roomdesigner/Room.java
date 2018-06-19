@@ -7,22 +7,21 @@ import com.badlogic.gdx.math.Vector2;
 public class Room {
 
 	public int x, y, width, height;
-	public Color color = Color.WHITE;
+	public RoomTag tag = RoomTag.defaultTag;
 	
 	public Room(int x, int y, int width, int height) {
 		this.x = x;
 		this.y = y;
 		this.width = width;
 		this.height = height;
-		this.color = new Color(MathUtils.random(0f, 1f),MathUtils.random(0f, 1f),MathUtils.random(0f, 1f), 1f);
 	}
 	
-	public Room(int x, int y, int width, int height, Color color) {
+	public Room(int x, int y, int width, int height, RoomTag tag) {
 		this.x = x;
 		this.y = y;
 		this.width = width;
 		this.height = height;
-		this.color = color;
+		this.tag = tag;
 	}
 	
 	public boolean isOverlappingRoom(Room other) {

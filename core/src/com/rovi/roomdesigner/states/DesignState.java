@@ -11,25 +11,26 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.scenes.scene2d.Actor;
-import com.badlogic.gdx.scenes.scene2d.Event;
-import com.badlogic.gdx.scenes.scene2d.EventListener;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.kotcrab.vis.ui.VisUI;
+import com.kotcrab.vis.ui.widget.ListView;
 import com.kotcrab.vis.ui.widget.Menu;
 import com.kotcrab.vis.ui.widget.MenuBar;
 import com.kotcrab.vis.ui.widget.MenuItem;
+import com.kotcrab.vis.ui.widget.PopupMenu;
 import com.kotcrab.vis.ui.widget.VisDialog;
 import com.kotcrab.vis.ui.widget.VisTable;
 import com.kotcrab.vis.ui.widget.VisTextArea;
 import com.kotcrab.vis.ui.widget.VisTextButton;
 import com.rovi.roomdesigner.Room;
+import com.rovi.roomdesigner.RoomTag;
 import com.rovi.roomdesigner.State;
 import com.rovi.roomdesigner.StateManager;
+import com.rovi.roomdesigner.TagListAdapter;
 
 
 public class DesignState extends State implements InputProcessor{
@@ -87,12 +88,42 @@ public class DesignState extends State implements InputProcessor{
 		Menu editMenu = new Menu("Edit");
 		Menu viewMenu = new Menu("View");
 		
+		
+		
 		fileMenu.addItem(new MenuItem("Save"));
-		fileMenu.addSeparator();
 		fileMenu.addItem(new MenuItem("Load"));
-		fileMenu.addSeparator();
 		fileMenu.addItem(new MenuItem("Quit"));
 		
+		//Edit menu
+		MenuItem roomPropertiesSubMenu = new MenuItem("Room Properties");
+		PopupMenu roomPropSub = new PopupMenu();
+		
+		MenuItem tagsSubMenu = new MenuItem("Tags");
+		final VisDialog tagsDialog = new VisDialog("Edit Tags");
+		tagsDialog.addCloseButton();
+		
+		Array<RoomTag> tagArray = new Array<>();
+		tagArray.add(new RoomTag("Default", Color.GRAY));
+		tagArray.add(new RoomTag("Boss", Color.GRAY));
+		tagArray.add(new RoomTag("Spawn", Color.GRAY));
+		TagListAdapter tagsListAdapter = new TagListAdapter(tagArray);
+		ListView tagsListView = new ListView<>(tagsListAdapter);
+		tagsDialog.add(tagsListView.getMainTable()).grow();
+		
+		tagsSubMenu.addListener(new ClickListener() {
+			@Override
+			public void clicked(InputEvent event, float x, float y) {
+				tagsDialog.show(stage);
+				super.clicked(event, x, y);
+			}
+		});
+		roomPropSub.addItem(tagsSubMenu);
+		
+		roomPropertiesSubMenu.setSubMenu(roomPropSub);
+		
+		editMenu.addItem(roomPropertiesSubMenu);
+		
+		//View menu
 		MenuItem showGridItem = new MenuItem("Toggle grid");
 		showGridItem.addListener(new ClickListener() {
 			@Override
@@ -163,7 +194,7 @@ public class DesignState extends State implements InputProcessor{
 	}
 	
 	private void drawRoom(int roomId, int x, int y, int width, int height) {
-		batch.setColor(rooms.get(roomId).color);
+		batch.setColor(rooms.get(roomId).tag.getColor());
 		batch.draw(whiteSquare, x * gridSize, y * gridSize, width * gridSize, height * gridSize);
 		batch.setColor(Color.WHITE);
 	}
